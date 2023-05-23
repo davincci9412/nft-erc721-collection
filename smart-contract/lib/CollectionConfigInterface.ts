@@ -4,6 +4,7 @@ import MarketplaceConfigInterface from '../lib/MarketplaceConfigInterface';
 interface SaleConfig {
   price: number;
   maxMintAmountPerTx: number;
+  maxMintAmountPerWallet: number;
 };
 
 export default interface CollectionConfigInterface {

@@ -17,14 +17,17 @@ const CollectionConfig: CollectionConfigInterface = {
   whitelistSale: {
     price: 0.05,
     maxMintAmountPerTx: 1,
+    maxMintAmountPerWallet: 1,
   },
   preSale: {
     price: 0.07,
     maxMintAmountPerTx: 2,
+    maxMintAmountPerWallet: 2,
   },
   publicSale: {
     price: 0.09,
     maxMintAmountPerTx: 5,
+    maxMintAmountPerWallet: 5,
   },
   contractAddress: null,
   marketplaceIdentifier: 'my-nft-token',
