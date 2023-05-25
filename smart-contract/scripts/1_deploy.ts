@@ -2,6 +2,7 @@ import { ethers } from 'hardhat';
 import CollectionConfig from '../config/CollectionConfig';
 import { NftContractType } from '../lib/NftContractProvider';
 import ContractArguments from './../config/ContractArguments';
+const hre = require("hardhat");
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -20,6 +21,14 @@ async function main() {
   await contract.deployed();
 
   console.log('Contract deployed to:', contract.address);
+
+  
+  await hre.run("verify:verify", {
+    address: contract.address,
+    constructorArguments: 
+    [...ContractArguments],
+  });
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere

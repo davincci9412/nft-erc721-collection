@@ -1,7 +1,8 @@
 import CollectionConfigInterface from '../lib/CollectionConfigInterface';
 import * as Networks from '../lib/Networks';
 import * as Marketplaces from '../lib/Marketplaces';
-import whitelistAddresses from './whitelist.json';
+import whitelist1Addresses from './whitelist1.json';
+import whitelist2Addresses from './whitelist2.json';
 
 const CollectionConfig: CollectionConfigInterface = {
   testnet: Networks.ethereumTestnet,
@@ -14,7 +15,12 @@ const CollectionConfig: CollectionConfigInterface = {
   tokenSymbol: 'MNT',
   hiddenMetadataUri: 'ipfs://__CID__/hidden.json',
   maxSupply: 10000,
-  whitelistSale: {
+  whitelistSale1: {
+    price: 0.05,
+    maxMintAmountPerTx: 1,
+    maxMintAmountPerWallet: 1,
+  },
+  whitelistSale2: {
     price: 0.05,
     maxMintAmountPerTx: 1,
     maxMintAmountPerWallet: 1,
@@ -32,7 +38,8 @@ const CollectionConfig: CollectionConfigInterface = {
   contractAddress: null,
   marketplaceIdentifier: 'my-nft-token',
   marketplaceConfig: Marketplaces.openSea,
-  whitelistAddresses,
+  whitelist1Addresses,
+  whitelist2Addresses,
 };
 
 export default CollectionConfig;

@@ -58,9 +58,12 @@ contract YourNftToken is ERC721AQueryable, Ownable, ReentrancyGuard {
     maxSupply = _maxSupply;
 
     //set max Tx mint amount for WL1 and WL2
-    setMaxMintAmountPerTx(_maxMintAmountPerTx1, _maxMintAmountPerTx2);  
+    setMaxMintAmountPerTx1(_maxMintAmountPerTx1);
+    setMaxMintAmountPerTx2(_maxMintAmountPerTx2);
+
     //set max Wallet mint amount for WL1 and WL2
-    setMaxMintAmountPerTx(_maxMintAmountPerWallet1,_maxMintAmountPerWallet2); 
+    setMaxMintAmountPerWallet1(_maxMintAmountPerWallet1); 
+    setMaxMintAmountPerWallet2(_maxMintAmountPerWallet2); 
 
     setHiddenMetadataUri(_hiddenMetadataUri);
   }
@@ -187,13 +190,16 @@ contract YourNftToken is ERC721AQueryable, Ownable, ReentrancyGuard {
     cost2 = _cost;
   }
 
-  function setMaxMintAmountPerTx(uint256 _maxMintAmountPerTx1, uint256 _maxMintAmountPerTx2) public onlyOwner {
+  function setMaxMintAmountPerTx1(uint256 _maxMintAmountPerTx1) public onlyOwner {
     maxMintAmountPerTx1 = _maxMintAmountPerTx1;
+  }
+  function setMaxMintAmountPerTx2(uint256 _maxMintAmountPerTx2) public onlyOwner {
     maxMintAmountPerTx2 = _maxMintAmountPerTx2;
   }
-
-  function setMaxMintAmountPerWallet(uint256 _maxMintAmountPerWallet1, uint256 _maxMintAmountPerWallet2) public onlyOwner {
+  function setMaxMintAmountPerWallet1(uint256 _maxMintAmountPerWallet1) public onlyOwner {
     maxMintAmountPerWallet1 = _maxMintAmountPerWallet1;
+  }
+  function setMaxMintAmountPerWallet2(uint256 _maxMintAmountPerWallet2) public onlyOwner {
     maxMintAmountPerWallet2 = _maxMintAmountPerWallet2;
   }
 

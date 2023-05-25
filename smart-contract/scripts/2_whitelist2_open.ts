@@ -6,12 +6,12 @@ import NftContractProvider from '../lib/NftContractProvider';
 
 async function main() {
   // Check configuration
-  if (CollectionConfig.whitelistAddresses.length < 1) {
+  if (CollectionConfig.whitelist1Addresses.length < 1) {
     throw '\x1b[31merror\x1b[0m ' + 'The whitelist is empty, please add some addresses to the configuration.';
   }
 
   // Build the Merkle Tree
-  const leafNodes = CollectionConfig.whitelistAddresses.map(addr => keccak256(addr));
+  const leafNodes = CollectionConfig.whitelist1Addresses.map(addr => keccak256(addr));
   const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
   const rootHash = '0x' + merkleTree.getRoot().toString('hex');
 
@@ -19,18 +19,18 @@ async function main() {
   const contract = await NftContractProvider.getContract();
 
   // Update sale price (if needed)
-  const whitelistPrice = utils.parseEther(CollectionConfig.whitelistSale.price.toString());
-  if (!await (await contract.cost()).eq(whitelistPrice)) {
-    console.log(`Updating the token price to ${CollectionConfig.whitelistSale.price} ${CollectionConfig.mainnet.symbol}...`);
+  const whitelistPrice = utils.parseEther(CollectionConfig.whitelistSale2.price.toString());
+  if (!await (await contract.cost2()).eq(whitelistPrice)) {
+    console.log(`Updating the token price to ${CollectionConfig.whitelistSale2.price} ${CollectionConfig.mainnet.symbol}...`);
 
-    await (await contract.setCost(whitelistPrice)).wait();
+    await (await contract.setCost2(whitelistPrice)).wait();
   }
 
   // Update max amount per TX (if needed)
-  if (!await (await contract.maxMintAmountPerTx()).eq(CollectionConfig.whitelistSale.maxMintAmountPerTx)) {
-    console.log(`Updating the max mint amount per TX to ${CollectionConfig.whitelistSale.maxMintAmountPerTx}...`);
+  if (!await (await contract.maxMintAmountPerTx2()).eq(CollectionConfig.whitelistSale2.maxMintAmountPerTx)) {
+    console.log(`Updating the max mint amount per TX to ${CollectionConfig.whitelistSale2.maxMintAmountPerTx}...`);
 
-    await (await contract.setMaxMintAmountPerTx(CollectionConfig.whitelistSale.maxMintAmountPerTx)).wait();
+    await (await contract.setMaxMintAmountPerTx2(CollectionConfig.whitelistSale2.maxMintAmountPerTx)).wait();
   }
 
   // Update root hash (if changed)
@@ -41,10 +41,10 @@ async function main() {
   }
   
   // Enable whitelist sale (if needed)
-  if (!await contract.whitelistMintEnabled()) {
+  if (!await contract.whitelistMintEnabled2()) {
     console.log('Enabling whitelist sale...');
 
-    await (await contract.setWhitelistMintEnabled(true)).wait();
+    await (await contract.setWhitelistMintEnabled2(true)).wait();
   }
 
   console.log('Whitelist sale has been enabled!');

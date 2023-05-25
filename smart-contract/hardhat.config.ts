@@ -37,12 +37,12 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 
 task('generate-root-hash', 'Generates and prints out the root hash for the current whitelist', async () => {
   // Check configuration
-  if (CollectionConfig.whitelistAddresses.length < 1) {
+  if (CollectionConfig.whitelist1Addresses.length < 1) {
     throw 'The whitelist is empty, please add some addresses to the configuration.';
   }
 
   // Build the Merkle Tree
-  const leafNodes = CollectionConfig.whitelistAddresses.map(addr => keccak256(addr));
+  const leafNodes = CollectionConfig.whitelist1Addresses.map(addr => keccak256(addr));
   const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
   const rootHash = '0x' + merkleTree.getRoot().toString('hex');
 
@@ -51,12 +51,12 @@ task('generate-root-hash', 'Generates and prints out the root hash for the curre
 
 task('generate-proof', 'Generates and prints out the whitelist proof for the given address (compatible with block explorers such as Etherscan)', async (taskArgs: {address: string}) => {
   // Check configuration
-  if (CollectionConfig.whitelistAddresses.length < 1) {
+  if (CollectionConfig.whitelist1Addresses.length < 1) {
     throw 'The whitelist is empty, please add some addresses to the configuration.';
   }
 
   // Build the Merkle Tree
-  const leafNodes = CollectionConfig.whitelistAddresses.map(addr => keccak256(addr));
+  const leafNodes = CollectionConfig.whitelist1Addresses.map(addr => keccak256(addr));
   const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
   const proof = merkleTree.getHexProof(keccak256(taskArgs.address)).toString().replace(/'/g, '').replace(/ /g, '');
 
@@ -127,7 +127,7 @@ const config: HardhatUserConfig = {
       // Ethereum
       goerli: process.env.BLOCK_EXPLORER_API_KEY,
       mainnet: process.env.BLOCK_EXPLORER_API_KEY,
-      rinkeby: process.env.BLOCK_EXPLORER_API_KEY,
+      rinkeby: process.env.BLOCK_EXPLORER_API_KEY,1
 
       // Polygon
       polygon: process.env.BLOCK_EXPLORER_API_KEY,

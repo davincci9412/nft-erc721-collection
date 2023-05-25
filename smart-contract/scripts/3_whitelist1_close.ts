@@ -5,13 +5,13 @@ async function main() {
   const contract = await NftContractProvider.getContract();
   
   // Disable whitelist sale (if needed)
-  if (await contract.whitelistMintEnabled()) {
-    console.log('Disabling whitelist sale...');
+  if (await contract.whitelistMintEnabled1()) {
+    console.log('Disabling whitelist1 sale...');
 
-    await (await contract.setWhitelistMintEnabled(false)).wait();
+    await (await contract.setWhitelistMintEnabled1(false)).wait();
   }
 
-  console.log('Whitelist sale has been disabled!');
+  console.log('Whitelist1 sale has been disabled!');
 }
 
 // We recommend this pattern to be able to use async/await everywhere
