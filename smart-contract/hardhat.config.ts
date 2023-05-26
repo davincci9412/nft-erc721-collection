@@ -116,6 +116,14 @@ const config: HardhatUserConfig = {
       timeout: 60000,
       gasMultiplier: DEFAULT_GAS_MULTIPLIER,
     },
+    goerli: {
+      url: "https://ethereum-goerli.publicnode.com",
+      accounts: [process.env.NETWORK_TESTNET_PRIVATE_KEY],
+      chainId: 5,
+      live: true,
+      saveDeployments: true,
+      gasMultiplier: 2,
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
@@ -127,8 +135,8 @@ const config: HardhatUserConfig = {
       // Ethereum
       goerli: process.env.BLOCK_EXPLORER_API_KEY,
       mainnet: process.env.BLOCK_EXPLORER_API_KEY,
-      rinkeby: process.env.BLOCK_EXPLORER_API_KEY,1
-
+      rinkeby: process.env.BLOCK_EXPLORER_API_KEY,
+      sepolia: process.env.BLOCK_EXPLORER_API_KEY,
       // Polygon
       polygon: process.env.BLOCK_EXPLORER_API_KEY,
       polygonMumbai: process.env.BLOCK_EXPLORER_API_KEY,
