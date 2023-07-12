@@ -5,8 +5,10 @@ interface Props {
   totalSupply: number;
   maxSupply: number;
   isPaused: boolean;
-  isWhitelistMintEnabled: boolean;
-  isUserInWhitelist: boolean;
+  isWhitelist1MintEnabled: boolean;
+  isWhitelist2MintEnabled: boolean;
+  isUserInWhitelist1: boolean;
+  isUserInWhitelist2: boolean;
   isSoldOut: boolean;
 }
 
@@ -23,9 +25,13 @@ export default class CollectionStatus extends React.Component<Props, State> {
     this.state = defaultState;
   }
 
-  private isSaleOpen(): boolean
+  private isSaleOpenForWL1(): boolean
   {
-    return (this.props.isWhitelistMintEnabled || !this.props.isPaused) && !this.props.isSoldOut;
+    return (this.props.isWhitelist1MintEnabled || !this.props.isPaused) && !this.props.isSoldOut;
+  }
+  private isSaleOpenForWL2(): boolean
+  {
+    return (this.props.isWhitelist2MintEnabled || !this.props.isPaused) && !this.props.isSoldOut;
   }
 
   render() {
@@ -44,9 +50,16 @@ export default class CollectionStatus extends React.Component<Props, State> {
 
           <div className="current-sale">
             <span className="label">Sale status</span>
-            {this.isSaleOpen() ?
+            {this.isSaleOpenForWL1() ?
               <>
-                {this.props.isWhitelistMintEnabled ? 'Whitelist only' : 'Open'}
+                {this.props.isWhitelist1MintEnabled ? 'Whitelist only' : 'Open'}
+              </>
+              :
+              'Closed'
+            }
+            {this.isSaleOpenForWL2() ?
+              <>
+                {this.props.isWhitelist2MintEnabled ? 'Whitelist only' : 'Open'}
               </>
               :
               'Closed'

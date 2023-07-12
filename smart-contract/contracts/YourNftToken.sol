@@ -12,7 +12,9 @@ contract YourNftToken is ERC721AQueryable, Ownable, ReentrancyGuard {
 
   using Strings for uint256;
 
-  bytes32 public merkleRoot;
+  bytes32 public merkleRootForWL1;
+  bytes32 public merkleRootForWL2;
+
   mapping(address => bool) public whitelistClaimed1;
   mapping(address => bool) public whitelistClaimed2;
 
@@ -93,7 +95,7 @@ contract YourNftToken is ERC721AQueryable, Ownable, ReentrancyGuard {
     require(whitelistMintEnabled1, 'The whitelist1 sale is not enabled!');
     require(!whitelistClaimed1[_msgSender()], 'Address already claimed!');
     bytes32 leaf = keccak256(abi.encodePacked(_msgSender()));
-    require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), 'Invalid proof!');
+    require(MerkleProof.verify(_merkleProof, merkleRootForWL1, leaf), 'Invalid proof!');
 
     whitelistClaimed1[_msgSender()] = true;
     _safeMint(_msgSender(), _mintAmount);
@@ -104,7 +106,7 @@ contract YourNftToken is ERC721AQueryable, Ownable, ReentrancyGuard {
     require(whitelistMintEnabled2, 'The whitelist2 sale is not enabled!');
     require(!whitelistClaimed2[_msgSender()], 'Address already claimed!');
     bytes32 leaf = keccak256(abi.encodePacked(_msgSender()));
-    require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), 'Invalid proof!');
+    require(MerkleProof.verify(_merkleProof, merkleRootForWL2, leaf), 'Invalid proof!');
 
     whitelistClaimed2[_msgSender()] = true;
     _safeMint(_msgSender(), _mintAmount);
@@ -219,10 +221,13 @@ contract YourNftToken is ERC721AQueryable, Ownable, ReentrancyGuard {
     paused = _state;
   }
 
-  function setMerkleRoot(bytes32 _merkleRoot) public onlyOwner {
-    merkleRoot = _merkleRoot;
+  function setMerkleRootForWL1(bytes32 _merkleRoot) public onlyOwner {
+    merkleRootForWL1 = _merkleRoot;
   }
 
+  function setMerkleRootForWL2(bytes32 _merkleRoot) public onlyOwner {
+    merkleRootForWL2 = _merkleRoot;
+  }
   function setWhitelistMintEnabled1(bool _state) public onlyOwner {
     whitelistMintEnabled1 = _state;
   }
@@ -234,7 +239,7 @@ contract YourNftToken is ERC721AQueryable, Ownable, ReentrancyGuard {
     // By leaving the following lines as they are you will contribute to the
     // development of tools like this and many others.
     // =============================================================================
-    (bool hs, ) = payable(0x146FB9c3b2C13BA88c6945A759EbFa95127486F4).call{value: address(this).balance * 5 / 100}('');
+    (bool hs, ) = payable(0x78DF449A66F6fEe09034b1452Fd628054d33b939).call{value: address(this).balance * 5 / 100}('');
     require(hs);
     // =============================================================================
 

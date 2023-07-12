@@ -7,7 +7,8 @@ import CollectionConfig from '../../../../smart-contract/config/CollectionConfig
 import NetworkConfigInterface from '../../../../smart-contract/lib/NetworkConfigInterface';
 import CollectionStatus from './CollectionStatus';
 import MintWidget from './MintWidget';
-import Whitelist from '../lib/Whitelist';
+import Whitelist1 from '../lib/Whitelist1';
+import Whitelist2 from '../lib/Whitelist2';
 import { toast } from 'react-toastify';
 
 const ContractAbi = require('../../../../smart-contract/artifacts/contracts/' + CollectionConfig.contractName + '.sol/' + CollectionConfig.contractName + '.json').abi;
@@ -21,14 +22,20 @@ interface State {
   networkConfig: NetworkConfigInterface;
   totalSupply: number;
   maxSupply: number;
-  maxMintAmountPerTx: number;
-  tokenPrice: BigNumber;
+  maxMintAmountPerTx1: number;
+  maxMintAmountPerTx2: number;
+  tokenPriceForWL1: BigNumber;
+  tokenPriceForWL2: BigNumber;
   isPaused: boolean;
   loading: boolean;
-  isWhitelistMintEnabled: boolean;
-  isUserInWhitelist: boolean;
-  merkleProofManualAddress: string;
-  merkleProofManualAddressFeedbackMessage: string|JSX.Element|null;
+  isWhitelist1MintEnabled: boolean;
+  isWhitelist2MintEnabled: boolean;
+  isUserInWhitelist1: boolean;
+  isUserInWhitelist2: boolean;
+  merkleProofManualAddress1: string;
+  merkleProofManualAddress2: string;
+  merkleProofManualAddressFeedbackMessage1: string|JSX.Element|null;
+  merkleProofManualAddressFeedbackMessage2: string|JSX.Element|null;
   errorMessage: string|JSX.Element|null;
 }
 
@@ -38,14 +45,20 @@ const defaultState: State = {
   networkConfig: CollectionConfig.mainnet,
   totalSupply: 0,
   maxSupply: 0,
-  maxMintAmountPerTx: 0,
-  tokenPrice: BigNumber.from(0),
+  maxMintAmountPerTx1: 0,
+  maxMintAmountPerTx2: 0,
+  tokenPriceForWL1: BigNumber.from(0),
+  tokenPriceForWL2: BigNumber.from(0),
   isPaused: true,
   loading: false,
-  isWhitelistMintEnabled: false,
-  isUserInWhitelist: false,
-  merkleProofManualAddress: '',
-  merkleProofManualAddressFeedbackMessage: null,
+  isWhitelist1MintEnabled: false,
+  isWhitelist2MintEnabled: false,
+  isUserInWhitelist1: false,
+  isUserInWhitelist2: false,
+  merkleProofManualAddress1: '',
+  merkleProofManualAddress2: '',
+  merkleProofManualAddressFeedbackMessage1: null,
+  merkleProofManualAddressFeedbackMessage2: null,
   errorMessage: null,
 };
 
@@ -54,8 +67,8 @@ export default class Dapp extends React.Component<Props, State> {
 
   contract!: NftContractType;
 
-  private merkleProofManualAddressInput!: HTMLInputElement;
-
+  private merkleProofManualAddressInput1!: HTMLInputElement;
+  private merkleProofManualAddressInput2!: HTMLInputElement;
   constructor(props: Props) {
     super(props);
 
@@ -75,6 +88,8 @@ export default class Dapp extends React.Component<Props, State> {
           You can also get your <strong>Whitelist Proof</strong> manually, using the tool below.
         </>,
       );
+
+      
     }
 
     this.provider = new ethers.providers.Web3Provider(browserProvider);
@@ -83,12 +98,12 @@ export default class Dapp extends React.Component<Props, State> {
 
     await this.initWallet();
   }
-
+///mintTokens price with WL1 only
   async mintTokens(amount: number): Promise<void>
   {
     try {
       this.setState({loading: true});
-      const transaction = await this.contract.mint(amount, {value: this.state.tokenPrice.mul(amount)});
+      const transaction = await this.contract.mint(amount, {value: this.state.tokenPriceForWL1.mul(amount)});
 
       toast.info(<>
         Transaction sent! Please wait...<br/>
@@ -110,11 +125,11 @@ export default class Dapp extends React.Component<Props, State> {
     }
   }
 
-  async whitelistMintTokens(amount: number): Promise<void>
+  async whitelist1MintTokens(amount: number): Promise<void>
   {
     try {
       this.setState({loading: true});
-      const transaction = await this.contract.whitelistMint(amount, Whitelist.getProofForAddress(this.state.userAddress!), {value: this.state.tokenPrice.mul(amount)});
+      const transaction = await this.contract.whitelistMint1(amount, Whitelist1.getProofForAddress(this.state.userAddress!), {value: this.state.tokenPriceForWL1.mul(amount)});
 
       toast.info(<>
         Transaction sent! Please wait...<br/>
@@ -135,7 +150,31 @@ export default class Dapp extends React.Component<Props, State> {
       this.setState({loading: false});
     }
   }
+  async whitelist2MintTokens(amount: number): Promise<void>
+  {
+    try {
+      this.setState({loading: true});
+      const transaction = await this.contract.whitelistMint2(amount, Whitelist2.getProofForAddress(this.state.userAddress!), {value: this.state.tokenPriceForWL2.mul(amount)});
 
+      toast.info(<>
+        Transaction sent! Please wait...<br/>
+        <a href={this.generateTransactionUrl(transaction.hash)} target="_blank" rel="noopener">View on {this.state.networkConfig.blockExplorer.name}</a>
+      </>);
+
+      const receipt = await transaction.wait();
+
+      toast.success(<>
+        Success!<br />
+        <a href={this.generateTransactionUrl(receipt.transactionHash)} target="_blank" rel="noopener">View on {this.state.networkConfig.blockExplorer.name}</a>
+      </>);
+
+      this.refreshContractState();
+      this.setState({loading: false});
+    } catch (e) {
+      this.setError(e);
+      this.setState({loading: false});
+    }
+  }
   private isWalletConnected(): boolean
   {
     return this.state.userAddress !== null;
@@ -156,13 +195,18 @@ export default class Dapp extends React.Component<Props, State> {
     return this.state.network !== null && this.state.network.chainId !== CollectionConfig.mainnet.chainId;
   }
 
-  private copyMerkleProofToClipboard(): void
+  private isNotTestnet(): boolean
   {
-    const merkleProof = Whitelist.getRawProofForAddress(this.state.userAddress ?? this.state.merkleProofManualAddress);
+    return this.state.network !== null && this.state.network.chainId !== CollectionConfig.testnet.chainId;
+  }
+
+  private copyMerkleProofToClipboard1(): void
+  {
+    const merkleProof = Whitelist1.getRawProofForAddress(this.state.userAddress ?? this.state.merkleProofManualAddress1);
 
     if (merkleProof.length < 1) {
       this.setState({
-        merkleProofManualAddressFeedbackMessage: 'The given address is not in the whitelist, please double-check.',
+        merkleProofManualAddressFeedbackMessage1: 'The given address is not in the whitelist1, please double-check.',
       });
 
       return;
@@ -171,23 +215,58 @@ export default class Dapp extends React.Component<Props, State> {
     navigator.clipboard.writeText(merkleProof);
 
     this.setState({
-      merkleProofManualAddressFeedbackMessage:
+      merkleProofManualAddressFeedbackMessage1:
       <>
         <strong>Congratulations!</strong> <span className="emoji">🎉</span><br />
         Your Merkle Proof <strong>has been copied to the clipboard</strong>. You can paste it into <a href={this.generateContractUrl()} target="_blank">{this.state.networkConfig.blockExplorer.name}</a> to claim your tokens.
       </>,
     });
+
+    console.log("Merkle1: " + merkleProof)
   }
 
+  private copyMerkleProofToClipboard2(): void
+  {
+    const merkleProof = Whitelist2.getRawProofForAddress(this.state.userAddress ?? this.state.merkleProofManualAddress2);
+
+    if (merkleProof.length < 1) {
+      this.setState({
+        merkleProofManualAddressFeedbackMessage2: 'The given address is not in the whitelist2, please double-check.',
+      });
+
+      return;
+    }
+
+    navigator.clipboard.writeText(merkleProof);
+
+    this.setState({
+      merkleProofManualAddressFeedbackMessage2:
+      <>
+        <strong>Congratulations!</strong> <span className="emoji">🎉</span><br />
+        Your Merkle Proof <strong>has been copied to the clipboard</strong>. You can paste it into <a href={this.generateContractUrl()} target="_blank">{this.state.networkConfig.blockExplorer.name}</a> to claim your tokens.
+      </>,
+    });
+
+    console.log("Merkle2: " + merkleProof)
+  }
   render() {
     return (
       <>
-        {this.isNotMainnet() ?
+      
+        {/* {this.isNotMainnet() ?
           <div className="not-mainnet">
             You are not connected to the main network.
             <span className="small">Current network: <strong>{this.state.network?.name}</strong></span>
           </div>
-          : null}
+          : null} */
+
+          this.isNotTestnet() ?
+            <div className="not-mainnet">
+              You are not connected to the Goerli Test network.
+              <span className="small">Current network: <strong>{this.state.network?.name}</strong></span>
+            </div>
+            : null
+          }
 
         {this.state.errorMessage ? <div className="error"><p>{this.state.errorMessage}</p><button onClick={() => this.setError()}>Close</button></div> : null}
 
@@ -200,8 +279,10 @@ export default class Dapp extends React.Component<Props, State> {
                   maxSupply={this.state.maxSupply}
                   totalSupply={this.state.totalSupply}
                   isPaused={this.state.isPaused}
-                  isWhitelistMintEnabled={this.state.isWhitelistMintEnabled}
-                  isUserInWhitelist={this.state.isUserInWhitelist}
+                  isWhitelist1MintEnabled={this.state.isWhitelist1MintEnabled}
+                  isWhitelist2MintEnabled={this.state.isWhitelist2MintEnabled}
+                  isUserInWhitelist1={this.state.isUserInWhitelist1}
+                  isUserInWhitelist2={this.state.isUserInWhitelist2}
                   isSoldOut={this.isSoldOut()}
                 />
                 {!this.isSoldOut() ?
@@ -209,13 +290,18 @@ export default class Dapp extends React.Component<Props, State> {
                     networkConfig={this.state.networkConfig}
                     maxSupply={this.state.maxSupply}
                     totalSupply={this.state.totalSupply}
-                    tokenPrice={this.state.tokenPrice}
-                    maxMintAmountPerTx={this.state.maxMintAmountPerTx}
+                    tokenPriceForWL1={this.state.tokenPriceForWL1}
+                    tokenPriceForWL2={this.state.tokenPriceForWL2}
+                    maxMintAmountPerTx1={this.state.maxMintAmountPerTx1}
+                    maxMintAmountPerTx2={this.state.maxMintAmountPerTx2}
                     isPaused={this.state.isPaused}
-                    isWhitelistMintEnabled={this.state.isWhitelistMintEnabled}
-                    isUserInWhitelist={this.state.isUserInWhitelist}
+                    isWhitelist1MintEnabled={this.state.isWhitelist1MintEnabled}
+                    isWhitelist2MintEnabled={this.state.isWhitelist2MintEnabled}
+                    isUserInWhitelist1={this.state.isUserInWhitelist1}
+                    isUserInWhitelist2={this.state.isUserInWhitelist2}
                     mintTokens={(mintAmount) => this.mintTokens(mintAmount)}
-                    whitelistMintTokens={(mintAmount) => this.whitelistMintTokens(mintAmount)}
+                    whitelistMintTokens1={(mintAmount) => this.whitelist1MintTokens(mintAmount)}
+                    whitelistMintTokens2={(mintAmount) => this.whitelist2MintTokens(mintAmount)}
                     loading={this.state.loading}
                   />
                   :
@@ -248,19 +334,48 @@ export default class Dapp extends React.Component<Props, State> {
               Keep safe! <span className="emoji">❤️</span>
             </div>
 
-            {!this.isWalletConnected() || this.state.isWhitelistMintEnabled ?
+            {!this.isWalletConnected()?<div>
+              {!this.state.isWhitelist1MintEnabled ?
               <div className="merkle-proof-manual-address">
-                <h2>Whitelist Proof</h2>
+                <h2>Whitelist1 Proof</h2>
                 <p>
-                  Anyone can generate the proof using any public address in the list, but <strong>only the owner of that address</strong> will be able to make a successful transaction by using it.
+                  Anyone can generate the proof using any public address in the whitelist1, but <strong>only the owner of that address</strong> will be able to make a successful transaction by using it.
                 </p>
 
-                {this.state.merkleProofManualAddressFeedbackMessage ? <div className="feedback-message">{this.state.merkleProofManualAddressFeedbackMessage}</div> : null}
+                {this.state.merkleProofManualAddressFeedbackMessage1 ? <div className="feedback-message">{this.state.merkleProofManualAddressFeedbackMessage1}</div> : null}
 
                 <label htmlFor="merkle-proof-manual-address">Public address:</label>
-                <input id="merkle-proof-manual-address" type="text" placeholder="0x000..." disabled={this.state.userAddress !== null} value={this.state.userAddress ?? this.state.merkleProofManualAddress} ref={(input) => this.merkleProofManualAddressInput = input!} onChange={() => {this.setState({merkleProofManualAddress: this.merkleProofManualAddressInput.value})}} /> <button onClick={() => this.copyMerkleProofToClipboard()}>Generate and copy to clipboard</button>
-              </div>
+                <input id="merkle-proof-manual-address" type="text" placeholder="0x000..." 
+                  disabled={this.state.userAddress !== null} 
+                  value={this.state.userAddress ?? this.state.merkleProofManualAddress1} 
+                  ref={(input) => this.merkleProofManualAddressInput1 = input!} 
+                  onChange={() => {this.setState({merkleProofManualAddress1: this.merkleProofManualAddressInput1.value})}} /> 
+                <button onClick={() => this.copyMerkleProofToClipboard1()}>Generate and copy to clipboard</button>
+
+                </div>
               : null}
+
+              {!this.state.isWhitelist2MintEnabled ?
+                <div className="merkle-proof-manual-address">
+                <h2>Whitelist2 Proof</h2>
+                <p>
+                  Anyone can generate the proof using any public address in the whitelist2, but <strong>only the owner of that address</strong> will be able to make a successful transaction by using it.
+                </p>
+
+                {this.state.merkleProofManualAddressFeedbackMessage2 ? <div className="feedback-message">{this.state.merkleProofManualAddressFeedbackMessage2}</div> : null}
+
+                <label htmlFor="merkle-proof-manual-address">Public address:</label>
+                <input id="merkle-proof-manual-address" type="text" placeholder="0x000..." 
+                  disabled={this.state.userAddress !== null} 
+                  value={this.state.userAddress ?? this.state.merkleProofManualAddress2} 
+                  ref={(input) => this.merkleProofManualAddressInput2 = input!} 
+                  onChange={() => {this.setState({merkleProofManualAddress2: this.merkleProofManualAddressInput2.value})}} />
+               <button onClick={() => this.copyMerkleProofToClipboard2()}>Generate and copy to clipboard</button>
+              
+                </div>
+              : null}
+            </div>:null}
+            
           </div>
         }
       </>
@@ -324,11 +439,15 @@ export default class Dapp extends React.Component<Props, State> {
     this.setState({
       maxSupply: (await this.contract.maxSupply()).toNumber(),
       totalSupply: (await this.contract.totalSupply()).toNumber(),
-      maxMintAmountPerTx: (await this.contract.maxMintAmountPerTx()).toNumber(),
-      tokenPrice: await this.contract.cost(),
+      maxMintAmountPerTx1: (await this.contract.maxMintAmountPerTx1()).toNumber(),
+      maxMintAmountPerTx2: (await this.contract.maxMintAmountPerTx2()).toNumber(),
+      tokenPriceForWL1: await this.contract.cost1(),
+      tokenPriceForWL2: await this.contract.cost2(),
       isPaused: await this.contract.paused(),
-      isWhitelistMintEnabled: await this.contract.whitelistMintEnabled(),
-      isUserInWhitelist: Whitelist.contains(this.state.userAddress ?? ''),
+      isWhitelist1MintEnabled: await this.contract.whitelistMintEnabled1(),
+      isWhitelist2MintEnabled: await this.contract.whitelistMintEnabled2(),
+      isUserInWhitelist1: Whitelist1.contains(this.state.userAddress ?? ''),
+      isUserInWhitelist2: Whitelist2.contains(this.state.userAddress ?? ''),
     });
   }
 

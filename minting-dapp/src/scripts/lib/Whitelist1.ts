@@ -1,8 +1,8 @@
-import whitelistAddresses from '../../../../smart-contract/config/whitelist.json';
+import whitelistAddresses from '../../../../smart-contract/config/whitelist1.json';
 import { MerkleTree } from 'merkletreejs';
 import keccak256 from 'keccak256';
 
-export default new class Whitelist {
+export default new class Whitelist1 {
   private merkleTree!: MerkleTree;
 
   private getMerkleTree(): MerkleTree
