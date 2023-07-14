@@ -46,7 +46,7 @@ export default class MintWidget extends React.Component<Props, State> {
     return this.props.isWhitelist1MintEnabled && this.props.isUserInWhitelist1;
   }
   private canWhitelist2Mint(): boolean {
-    return this.props.isWhitelist1MintEnabled && this.props.isUserInWhitelist2;
+    return this.props.isWhitelist2MintEnabled && this.props.isUserInWhitelist2;
   }
 
   private incrementMintAmount1(): void {
@@ -134,7 +134,7 @@ export default class MintWidget extends React.Component<Props, State> {
           <div className="cannot-mint">
             <span className="emoji">⏳</span>
 
-            {this.props.isWhitelist2MintEnabled ? <>You are not included in the <strong>whitelist2</strong>.</> : <>The contract is <strong>paused</strong> for Whitelist1.</>}<br />
+            {this.props.isWhitelist2MintEnabled ? <>You are not included in the <strong>whitelist2</strong>.</> : <>The contract is <strong>paused</strong> for Whitelist2.</>}<br />
             Please come back during the next sale!
           </div>
         }

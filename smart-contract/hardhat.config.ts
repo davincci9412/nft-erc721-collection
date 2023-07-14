@@ -38,29 +38,49 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 task('generate-root-hash', 'Generates and prints out the root hash for the current whitelist', async () => {
   // Check configuration
   if (CollectionConfig.whitelist1Addresses.length < 1) {
-    throw 'The whitelist is empty, please add some addresses to the configuration.';
+    throw 'The whitelist1 is empty, please add some addresses to the configuration.';
+  }
+  if (CollectionConfig.whitelist2Addresses.length < 1) {
+    throw 'The whitelist2 is empty, please add some addresses to the configuration.';
   }
 
-  // Build the Merkle Tree
-  const leafNodes = CollectionConfig.whitelist1Addresses.map(addr => keccak256(addr));
-  const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
-  const rootHash = '0x' + merkleTree.getRoot().toString('hex');
+  // Build the Merkle Tree For WL1
+  const leafNodes1 = CollectionConfig.whitelist1Addresses.map(addr => keccak256(addr));
+  const merkleTree1 = new MerkleTree(leafNodes1, keccak256, { sortPairs: true });
+  const rootHash1 = '0x' + merkleTree1.getRoot().toString('hex');
 
-  console.log('The Merkle Tree root hash for the current whitelist is: ' + rootHash);
+  console.log('The Merkle Tree root hash for the whitelist1 is: ' + rootHash1 + "\n");
+
+    // Build the Merkle Tree For WL2
+    const leafNodes2 = CollectionConfig.whitelist2Addresses.map(addr => keccak256(addr));
+    const merkleTree2 = new MerkleTree(leafNodes2, keccak256, { sortPairs: true });
+    const rootHash2 = '0x' + merkleTree2.getRoot().toString('hex');
+  
+    console.log('The Merkle Tree root hash for the whitelist2 is: ' + rootHash2 + "\n");
 });
 
 task('generate-proof', 'Generates and prints out the whitelist proof for the given address (compatible with block explorers such as Etherscan)', async (taskArgs: {address: string}) => {
   // Check configuration
   if (CollectionConfig.whitelist1Addresses.length < 1) {
-    throw 'The whitelist is empty, please add some addresses to the configuration.';
+    throw 'The whitelist1 is empty, please add some addresses to the configuration.';
+  }
+  if (CollectionConfig.whitelist2Addresses.length < 1) {
+    throw 'The whitelist1 is empty, please add some addresses to the configuration.';
   }
 
   // Build the Merkle Tree
-  const leafNodes = CollectionConfig.whitelist1Addresses.map(addr => keccak256(addr));
-  const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
-  const proof = merkleTree.getHexProof(keccak256(taskArgs.address)).toString().replace(/'/g, '').replace(/ /g, '');
+  const leafNodes1 = CollectionConfig.whitelist1Addresses.map(addr => keccak256(addr));
+  const merkleTree1 = new MerkleTree(leafNodes1, keccak256, { sortPairs: true });
+  const proof1 = merkleTree1.getHexProof(keccak256(taskArgs.address)).toString().replace(/'/g, '').replace(/ /g, '');
 
-  console.log('The whitelist proof for the given address is: ' + proof);
+  console.log('The whitelist1 proof for the given address is: ' + proof1 + "\n");
+
+  const leafNodes2 = CollectionConfig.whitelist2Addresses.map(addr => keccak256(addr));
+  const merkleTree2 = new MerkleTree(leafNodes2, keccak256, { sortPairs: true });
+  const proof2 = merkleTree2.getHexProof(keccak256(taskArgs.address)).toString().replace(/'/g, '').replace(/ /g, '');
+
+  console.log('The whitelist2 proof for the given address is: ' + proof2 + "\n");
+
 })
 .addPositionalParam('address', 'The public address');
 

@@ -6,12 +6,12 @@ import NftContractProvider from '../lib/NftContractProvider';
 
 async function main() {
   // Check configuration
-  if (CollectionConfig.whitelist1Addresses.length < 1) {
-    throw '\x1b[31merror\x1b[0m ' + 'The whitelist is empty, please add some addresses to the configuration.';
+  if (CollectionConfig.whitelist2Addresses.length < 1) {
+    throw '\x1b[31merror\x1b[0m ' + 'The whitelist2 is empty, please add some addresses to the configuration.';
   }
 
   // Build the Merkle Tree
-  const leafNodes = CollectionConfig.whitelist1Addresses.map(addr => keccak256(addr));
+  const leafNodes = CollectionConfig.whitelist2Addresses.map(addr => keccak256(addr));
   const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
   const rootHash = '0x' + merkleTree.getRoot().toString('hex');
 
@@ -34,20 +34,20 @@ async function main() {
   }
 
   // Update root hash (if changed)
-  if ((await contract.merkleRoot()) !== rootHash) {
+  if ((await contract.merkleRootForWL2()) !== rootHash) {
     console.log(`Updating the root hash to: ${rootHash}`);
 
-    await (await contract.setMerkleRoot(rootHash)).wait();
+    await (await contract.setMerkleRootForWL2(rootHash)).wait();
   }
   
   // Enable whitelist sale (if needed)
   if (!await contract.whitelistMintEnabled2()) {
-    console.log('Enabling whitelist sale...');
+    console.log('Enabling whitelist2 sale...');
 
     await (await contract.setWhitelistMintEnabled2(true)).wait();
   }
 
-  console.log('Whitelist sale has been enabled!');
+  console.log('Whitelist2 sale has been enabled!');
 }
 
 // We recommend this pattern to be able to use async/await everywhere
